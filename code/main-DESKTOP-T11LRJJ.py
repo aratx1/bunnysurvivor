@@ -4,6 +4,8 @@ from player import Player
 
 class Game:
     def __init__(self):
+
+        #setup
         pygame.init()
         self.display_surface = pygame.display.set_mode((ANCHO_VENTADA, ALTO_VENTA))
         pygame.display.set_caption("Bunny Survivor!")
@@ -14,8 +16,7 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
 
         #sprites
-
-        self.player = Player((200, 200), self.all_sprites)
+        self.player = Player((400, 300), self.all_sprites)
 
     def run(self):
         while self.running:
@@ -28,12 +29,11 @@ class Game:
                     self.running = False
 
             #update
-
             self.all_sprites.update(dt)
-            #draw
-            self.all_sprites.draw(self.display_surface)
-            pygame.display.update()
 
+            #draw
+            pygame.display.update()
+            self.all_sprites.draw(self.display_surface)
 
         
         pygame.quit()
