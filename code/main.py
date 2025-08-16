@@ -4,6 +4,7 @@ from sprites import *
 
 from random import randint
 
+
 class Game:
     def __init__(self):
         # setup

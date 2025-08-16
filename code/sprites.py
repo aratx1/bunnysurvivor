@@ -5,4 +5,4 @@ class CollisionSprite(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = pygame.Surface(size)
         self.image.fill('blue')
-        self.rect = self.image.get_rect(center = pos)
+        self.rect = self.image.get_frect(center = pos)
