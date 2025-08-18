@@ -1,0 +1,36 @@
+{
+    "activeFile": "world.tmx",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Grass.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Objetos.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 0.75,
+            "scaleInEditor": 1
+        },
+        "world.tmx": {
+            "scale": 0.25,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 774,
+                "y": 1028
+            }
+        }
+    },
+    "openFiles": [
+        "world.tmx",
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Grass.tsx",
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Objetos.tsx"
+    ],
+    "project": "",
+    "recentFiles": [
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Objetos.tsx",
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Grass.tsx",
+        "world.tmx"
+    ]
+}
