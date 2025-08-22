@@ -69,51 +69,52 @@ class Bullet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
             self.kill()
 
+# ...existing code...
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos, frames_dict, groups, player, collision_sprites):
+    def __init__(self, pos, frames_dict, dead_frames_dict, groups, player, collision_sprites):
         super().__init__(groups)
         self.player = player
 
-        # frames ahora es un diccionario como en Player
         self.frames = frames_dict
-        self.state = 'izquierda'  # estado inicial
+        self.dead_frames = dead_frames_dict
+        self.state = 'izquierda'
         self.frame_index = 0
         self.image = self.frames[self.state][self.frame_index]
         self.animation_speed = 6
 
-        # rect
         self.rect = self.image.get_frect(center=pos)
         self.hitbox_rect = self.rect.inflate(-20, -40)
         self.collision_sprites = collision_sprites
         self.direction = pygame.Vector2()
         self.speed = 350
 
-    def animate(self, dt):
-        # elegir animación según dirección
-        if abs(self.direction.x) > abs(self.direction.y):
-            self.state = 'derecha' if self.direction.x > 0 else 'izquierda'
-        else:
-            self.state = 'frente' if self.direction.y > 0 else 'atras'
-        
-        # animar solo si hay imágenes para el estado actual
-        if len(self.frames[self.state]) > 0:
-            self.frame_index += self.animation_speed * dt
-            self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
-        else:
-            # Si no hay animaciones, elige un estado por defecto que sí tenga
-            for state, frames in self.frames.items():
-                if frames:
-                    self.state = state
-                    self.frame_index = 0
-                    self.image = self.frames[self.state][0]
-                    break
-            else:
-                # Si ninguna animación está disponible, usa una superficie negra como fallback
-                self.image = pygame.Surface((32, 32))
-                self.image.fill('black')
+        self.alive = True
+        self.death_anim_done = False
 
+    def animate(self, dt):
+        if self.alive:
+            # elegir animación según dirección
+            if abs(self.direction.x) > abs(self.direction.y):
+                self.state = 'derecha' if self.direction.x > 0 else 'izquierda'
+            else:
+                self.state = 'frente' if self.direction.y > 0 else 'atras'
+            if len(self.frames[self.state]) > 0:
+                self.frame_index += self.animation_speed * dt
+                self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
+        else:
+            # Animación de muerte
+            if len(self.dead_frames[self.state]) > 0:
+                self.frame_index += self.animation_speed * dt
+                idx = int(self.frame_index)
+                if idx < len(self.dead_frames[self.state]):
+                    self.image = self.dead_frames[self.state][idx]
+                else:
+                    self.death_anim_done = True
+                    self.kill()
 
     def move(self, dt):
+        if not self.alive:
+            return
         player_pos = pygame.Vector2(self.player.rect.center)
         enemy_pos = pygame.Vector2(self.rect.center)
         self.direction = (player_pos - enemy_pos).normalize()
@@ -134,6 +135,12 @@ class Enemy(pygame.sprite.Sprite):
                     if self.direction.y < 0: self.hitbox_rect.top = sprite.rect.bottom
                     if self.direction.y > 0: self.hitbox_rect.bottom = sprite.rect.top
 
+    def hit(self):
+        # Llamar a esto cuando la bala toque al enemigo
+        self.alive = False
+        self.frame_index = 0
+
     def update(self, dt):
         self.move(dt)
         self.animate(dt)
+# ...existing code...

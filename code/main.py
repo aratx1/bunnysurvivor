@@ -33,7 +33,7 @@ class Game:
 
         # enemy timer 
         self.enemy_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.enemy_event, 300)
+        pygame.time.set_timer(self.enemy_event, 1000)
         self.spawn_positions = []
         
         # setup
@@ -52,6 +52,16 @@ class Game:
                     full_path = join(folder_path, file_name)
                     surf = pygame.image.load(full_path).convert_alpha()
                     self.enemy_frames[folder].append(surf)
+
+        self.enemy_dead_frames = {}
+        dead_folders = list(walk(join('images', 'enemies', "muerto")))[0][1]
+        for folder in dead_folders:
+            for folder_path, _, file_names in walk(join('images', 'enemies', "muerto", folder)):
+                self.enemy_dead_frames[folder] = []
+                for file_name in sorted(file_names, key = lambda name: int(name.split('.')[0])):
+                    full_path = join(folder_path, file_name)
+                    surf = pygame.image.load(full_path).convert_alpha()
+                    self.enemy_dead_frames[folder].append(surf)
 
     def input(self):
         if pygame.mouse.get_pressed()[0] and self.can_shoot:
@@ -92,23 +102,32 @@ class Game:
             # dt 
             dt = self.clock.tick() / 1000
 
-            # event loop 
+            # ...existing code...
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                if self.enemy_frames:
-                    Enemy(
-                    choice(self.spawn_positions),
-                    self.enemy_frames,  # <-- pasar diccionario completo
-                    (self.all_sprites, self.enemy_sprites),
-                    self.player,
-                    self.collision_sprites
-)
+                if event.type == self.enemy_event:
+                    if len(self.enemy_sprites) < 10:  # Limita la cantidad máxima de enemigos
+                        Enemy(
+                            choice(self.spawn_positions),
+                            self.enemy_frames, self.enemy_dead_frames,
+                            (self.all_sprites, self.enemy_sprites),
+                            self.player,
+                            self.collision_sprites)
+            # ...existing code...
 
             # update 
             self.gun_timer()
             self.input()
             self.all_sprites.update(dt)
+
+            # Detectar colisión bala-enemigo
+            for enemy in self.enemy_sprites:
+                if enemy.alive:
+                    for bullet in pygame.sprite.spritecollide(enemy, self.bullet_sprites, dokill=True):
+                        enemy.hit()
+# ...existing code...
+
 
             # draw
             self.display_surface.fill('black')
