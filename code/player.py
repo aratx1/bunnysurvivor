@@ -17,6 +17,10 @@ class Player(pygame.sprite.Sprite):
         # velocidad de animación (frames por segundo aprox)
         self.animation_speed = 12  
 
+        # efecto de parpadeo para invulnerabilidad
+        self.blink_timer = 0
+        self.blink_duration = 100  # parpadea cada 100ms
+
     def load_images(self):
         self.frames = {'izquierda': [], 'derecha': [], 'frente': [], 'atras': []}
 
@@ -66,8 +70,18 @@ class Player(pygame.sprite.Sprite):
 
         self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
 
+    def check_invulnerability_effect(self, invulnerable):
+        """Maneja el efecto visual de invulnerabilidad"""
+        if invulnerable:
+            self.blink_timer += pygame.time.get_ticks() % 1000
+            # Hacer el sprite semitransparente cada cierto tiempo para crear efecto de parpadeo
+            if (pygame.time.get_ticks() // self.blink_duration) % 2:
+                # Crear una copia semitransparente de la imagen
+                temp_image = self.image.copy()
+                temp_image.set_alpha(100)  # 100 de 255 = semitransparente
+                self.image = temp_image
+
     def update(self, dt):
         self.input()
         self.move(dt)
         self.animate(dt)
-

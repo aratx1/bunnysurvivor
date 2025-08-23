@@ -25,6 +25,11 @@ class Game:
         self.bullet_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
 
+        # sistema de vidas
+        self.player_lives = INITIAL_LIVES
+        self.invulnerable = False
+        self.invulnerability_time = 0
+        self.invulnerability_duration = INVULNERABILITY_TIME
 
         # gun timer
         self.can_shoot = True
@@ -42,6 +47,10 @@ class Game:
 
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images', 'gun', 'bala.png')).convert_alpha()
+        
+        # Cargar imágenes de corazones para el sistema de vidas
+        self.empty_heart = pygame.image.load(join('images', 'items', 'Empty-heart.png')).convert_alpha()
+        self.full_heart = pygame.image.load(join('images', 'items', 'Heart.png')).convert_alpha()
         
         folders = list(walk(join('images', 'enemies', "vivo")))[0][1]
         self.enemy_frames = {}
@@ -76,6 +85,40 @@ class Game:
             if current_time - self.shoot_time >= self.gun_cooldown:
                 self.can_shoot = True
 
+    def invulnerability_timer(self):
+        if self.invulnerable:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.invulnerability_time >= self.invulnerability_duration:
+                self.invulnerable = False
+
+    def check_player_enemy_collision(self):
+        if not self.invulnerable:
+            for enemy in self.enemy_sprites:
+                if enemy.alive and enemy.hitbox_rect.colliderect(self.player.hitbox_rect):
+                    self.player_lives -= 1
+                    self.invulnerable = True
+                    self.invulnerability_time = pygame.time.get_ticks()
+                    
+                    if self.player_lives <= 0:
+                        print("¡Game Over!")
+                        self.running = False
+                    break
+
+    def draw_lives(self):
+        # Posición inicial para los corazones
+        heart_x = 20
+        heart_y = 20
+        heart_spacing = 40  # Espacio entre corazones
+        
+        # Dibujar los corazones según las vidas actuales
+        for i in range(INITIAL_LIVES):
+            if i < self.player_lives:
+                # Dibujar corazón lleno si aún tiene esta vida
+                self.display_surface.blit(self.full_heart, (heart_x + i * heart_spacing, heart_y))
+            else:
+                # Dibujar corazón vacío si ha perdido esta vida
+                self.display_surface.blit(self.empty_heart, (heart_x + i * heart_spacing, heart_y))
+
     def setup(self):
         map = load_pygame(join("data", "maps", "world.tmx"))
 
@@ -95,14 +138,12 @@ class Game:
             else:
                 self.spawn_positions.append((obj.x, obj.y))
 
-
-
     def run(self):
         while self.running:
             # dt 
             dt = self.clock.tick() / 1000
 
-            # ...existing code...
+            # events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
@@ -114,32 +155,35 @@ class Game:
                             (self.all_sprites, self.enemy_sprites),
                             self.player,
                             self.collision_sprites)
-            # ...existing code...
 
             # update 
             self.gun_timer()
+            self.invulnerability_timer()
             self.input()
+            
+            # aplicar efecto de invulnerabilidad al jugador
+            self.player.check_invulnerability_effect(self.invulnerable)
+            
             self.all_sprites.update(dt)
+
+            # colisiones
+            self.check_player_enemy_collision()
 
             # Detectar colisión bala-enemigo
             for enemy in self.enemy_sprites:
                 if enemy.alive:
                     for bullet in pygame.sprite.spritecollide(enemy, self.bullet_sprites, dokill=True):
                         enemy.hit()
-# ...existing code...
-
 
             # draw
             self.display_surface.fill('black')
             self.ground_sprites.draw(self.display_surface)   # primero el suelo
             self.all_sprites.draw(self.player.rect.center)   # luego el resto
+            self.draw_lives()  # mostrar vidas
             pygame.display.update()
-
-
 
         pygame.quit()
 
 if __name__ == '__main__':
     game = Game()
     game.run()
-
