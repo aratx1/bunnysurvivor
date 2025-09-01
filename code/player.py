@@ -19,7 +19,8 @@ class Player(pygame.sprite.Sprite):
 
         # efecto de parpadeo para invulnerabilidad
         self.blink_timer = 0
-        self.blink_duration = 100  # parpadea cada 100ms
+        self.blink_duration = 150  # parpadea cada 150ms
+        self.is_invulnerable = False  # guardar estado de invulnerabilidad
 
     def load_images(self):
         self.frames = {'izquierda': [], 'derecha': [], 'frente': [], 'atras': []}
@@ -69,17 +70,24 @@ class Player(pygame.sprite.Sprite):
             self.frame_index = 0
 
         self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
+        
+        # Aplicar efecto de invulnerabilidad DESPUÉS de cargar la imagen normal
+        if self.is_invulnerable:
+            # Parpadeo blanco cada cierto tiempo
+            if (pygame.time.get_ticks() // self.blink_duration) % 2:
+                # Crear una copia de la imagen y hacerla blanca manteniendo la transparencia
+                temp_image = self.image.copy()
+                
+                # Crear máscara para mantener solo los píxeles no transparentes
+                mask = pygame.mask.from_surface(temp_image)
+                white_surface = mask.to_surface(setcolor=(255, 255, 255, 200))
+                white_surface.set_colorkey((0, 0, 0))  # Hacer el fondo negro transparente
+                
+                self.image = white_surface
 
     def check_invulnerability_effect(self, invulnerable):
-        """Maneja el efecto visual de invulnerabilidad"""
-        if invulnerable:
-            self.blink_timer += pygame.time.get_ticks() % 1000
-            # Hacer el sprite semitransparente cada cierto tiempo para crear efecto de parpadeo
-            if (pygame.time.get_ticks() // self.blink_duration) % 2:
-                # Crear una copia semitransparente de la imagen
-                temp_image = self.image.copy()
-                temp_image.set_alpha(100)  # 100 de 255 = semitransparente
-                self.image = temp_image
+        ##Estado de invulnerabilidad
+        self.is_invulnerable = invulnerable
 
     def update(self, dt):
         self.input()
