@@ -26,11 +26,12 @@ class Game:
         self.bullet_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
 
-        # sistema de vidas
+        # sistema de vidas, contador de enemigos
         self.player_lives = INITIAL_LIVES
         self.invulnerable = False
         self.invulnerability_time = 0
         self.invulnerability_duration = INVULNERABILITY_TIME
+        self.enemy_counter = INITIAL_ENEMIES
 
         # gun timer
         self.can_shoot = True
@@ -42,6 +43,19 @@ class Game:
         # pygame.time.set_timer(self.enemy_event, 1000)  # <- comentar esta línea
         self.spawn_positions = []
         
+        #audio
+        self.background_sound = pygame.mixer.Sound(join("audio", "katamari.mp3"))
+        self.background_sound.set_volume(0.6)
+
+        self.shoot_sound = pygame.mixer.Sound(join("audio", "escopeta.mp3"))
+        self.shoot_sound.set_volume(0.6)
+
+        self.player_impact_sound = pygame.mixer.Sound(join("audio", "golpeplayer.mp3"))
+        self.player_impact_sound.set_volume(0.3)
+        self.enemy_impact_sound = pygame.mixer.Sound(join("audio", "golpeenemigo.mp3"))
+        self.enemy_impact_sound.set_volume(0.3)
+
+
         # setup
         self.load_images()
         self.setup()
@@ -56,8 +70,11 @@ class Game:
 
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images', 'gun', 'bala.png')).convert_alpha()
+
+        #Cargar imagen de contador de enemigos
+        self.skull = pygame.image.load(join('images', 'items', 'Skull.png')).convert_alpha()
         
-        # Cargar imÃ¡genes de corazones para el sistema de vidas
+        # Cargar imagenes de corazones para el sistema de vidas
         self.empty_heart = pygame.image.load(join('images', 'items', 'Empty-heart.png')).convert_alpha()
         self.full_heart = pygame.image.load(join('images', 'items', 'Heart.png')).convert_alpha()
         
@@ -83,6 +100,7 @@ class Game:
 
     def input(self):
         if pygame.mouse.get_pressed()[0] and self.can_shoot:
+            self.shoot_sound.play()
             pos = self.gun.rect.center + self.gun.player_direction * 50
             Bullet(self.bullet_surf, pos, self.gun.player_direction, (self.all_sprites, self.bullet_sprites))
             self.can_shoot = False
@@ -105,6 +123,7 @@ class Game:
             for enemy in self.enemy_sprites:
                 if enemy.alive and enemy.hitbox_rect.colliderect(self.player.hitbox_rect):
                     self.player_lives -= 1
+                    self.player_impact_sound.play() 
                     self.invulnerable = True
                     self.invulnerability_time = pygame.time.get_ticks()
                     
@@ -124,6 +143,23 @@ class Game:
                 self.display_surface.blit(self.full_heart, (heart_x + i * heart_spacing, heart_y))
             else:
                 self.display_surface.blit(self.empty_heart, (heart_x + i * heart_spacing, heart_y))
+
+    def draw_enemy_counter(self):
+        # Posición del icono de calavera (debajo de las vidas)
+        skull_x = 20
+        skull_y = 90  # un poco más abajo que los corazones
+    
+        # Dibujar la calavera
+        self.display_surface.blit(self.skull, (skull_x, skull_y))
+
+        # Fuente para el número
+        font = pygame.font.Font(join("fonts", "m6x11plus.ttf"), 40)
+        text_surface = font.render(str(self.enemy_counter), True, (255, 255, 255))
+
+        # Mostrar número al costado derecho del icono
+        text_rect = text_surface.get_rect(midleft=(skull_x + self.skull.get_width() + 10, skull_y + self.skull.get_height()//2))
+        self.display_surface.blit(text_surface, text_rect)
+
 
     def setup(self):
         map = load_pygame(join("data", "maps", "world.tmx"))
@@ -145,6 +181,7 @@ class Game:
                 self.spawn_positions.append((obj.x, obj.y))
 
     def game_over_screen(self):
+        self.background_sound.stop()
         self.game_over = True
         while self.game_over:
             for event in pygame.event.get():
@@ -175,7 +212,6 @@ class Game:
             self.clock.tick(60)
         
     def game_start_screen(self):
-        # <- corregir solo estas líneas
         while not self.game_started and self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -184,6 +220,7 @@ class Game:
                     if event.key == pygame.K_RETURN:
                         self.game_started = True
                         pygame.time.set_timer(self.enemy_event, 1000)
+                        self.background_sound.play(-1)
 
             # dibujar fondo
             self.display_surface.blit(self.game_start_bg, (0, 0))
@@ -193,7 +230,7 @@ class Game:
             text_rect = text_surface.get_rect(center=(ANCHO_VENTANA//2, ALTO_VENTANA//2))
             self.display_surface.blit(text_surface, text_rect)
 
-            # <- añadir solo estas líneas
+            # texto de pantalla 
             instruction_font = pygame.font.Font(join("fonts", "m6x11plus.ttf"), 40)
             instruction_surface = instruction_font.render("Presiona ENTER para comenzar", True, (255, 255, 255))
             instruction_rect = instruction_surface.get_rect(center=(ANCHO_VENTANA//2, ALTO_VENTANA//2 + 100))
@@ -202,7 +239,7 @@ class Game:
             pygame.display.update()
             self.clock.tick(60)
 
-    # <- añadir solo esta función
+    # reiniciar juego
     def restart_game(self):
         self.all_sprites.empty()
         self.ground_sprites.empty()
@@ -257,12 +294,15 @@ class Game:
                 if enemy.alive:
                     for bullet in pygame.sprite.spritecollide(enemy, self.bullet_sprites, dokill=True):
                         enemy.hit()
+                        self.enemy_impact_sound.play()
+                        self.enemy_counter += 1
 
             # draw
             self.display_surface.fill('black')
             self.ground_sprites.draw(self.display_surface)   # primero el suelo
             self.all_sprites.draw(self.player.rect.center)   # luego el resto
             self.draw_lives()  # mostrar vidas
+            self.draw_enemy_counter()  #mostrar contador de enemigos
             pygame.display.update()
 
         pygame.quit()
