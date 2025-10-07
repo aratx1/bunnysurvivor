@@ -15,11 +15,11 @@ class Game:
         pygame.display.set_caption('Bunny Survivor!')
         self.clock = pygame.time.Clock()
         self.running = True
-        self.game_over = False   # <- nuevo estado
-        self.game_started = False  # <- añadir solo esta línea
+        self.game_over = False   
+        self.game_started = False  
         self.load_images()
 
-        # groups 
+        # grupos
         self.all_sprites = AllSprites()
         self.ground_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
@@ -40,7 +40,8 @@ class Game:
 
         # enemy timer 
         self.enemy_event = pygame.event.custom_type()
-        # pygame.time.set_timer(self.enemy_event, 1000)  # <- comentar esta línea
+
+        #spawn lista
         self.spawn_positions = []
         
         #audio
@@ -60,24 +61,25 @@ class Game:
         self.load_images()
         self.setup()
 
-        # --- cargar fuente y fondo para la pantalla de Game Over ---
+        # fuente y fondo game over
         self.game_start_bg = pygame.image.load(join("images", "menu", "fondoinicio.png")).convert()
         self.game_start_font = pygame.font.Font(join("fonts", "m6x11plus.ttf"), 80)  
 
-        # --- cargar fuente y fondo para la pantalla de Start ---
+        #fuente y fondo start
         self.game_over_bg = pygame.image.load(join("images", "menu", "fondofinal.png")).convert()
         self.game_over_font = pygame.font.Font(join("fonts", "m6x11plus.ttf"), 80)  
 
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images', 'gun', 'bala.png')).convert_alpha()
 
-        #Cargar imagen de contador de enemigos
+        #Contador de enemigos
         self.skull = pygame.image.load(join('images', 'items', 'Skull.png')).convert_alpha()
         
-        # Cargar imagenes de corazones para el sistema de vidas
+        # Vidas
         self.empty_heart = pygame.image.load(join('images', 'items', 'Empty-heart.png')).convert_alpha()
         self.full_heart = pygame.image.load(join('images', 'items', 'Heart.png')).convert_alpha()
         
+        #Carpetas de enemigos vivos
         folders = list(walk(join('images', 'enemies', "vivo")))[0][1]
         self.enemy_frames = {}
         for folder in folders:
@@ -88,6 +90,7 @@ class Game:
                     surf = pygame.image.load(full_path).convert_alpha()
                     self.enemy_frames[folder].append(surf)
 
+        #Carpetas de enemigos muertos
         self.enemy_dead_frames = {}
         dead_folders = list(walk(join('images', 'enemies', "muerto")))[0][1]
         for folder in dead_folders:
@@ -99,20 +102,23 @@ class Game:
                     self.enemy_dead_frames[folder].append(surf)
 
     def input(self):
+        #Disparos
         if pygame.mouse.get_pressed()[0] and self.can_shoot:
             self.shoot_sound.play()
             pos = self.gun.rect.center + self.gun.player_direction * 50
-            Bullet(self.bullet_surf, pos, self.gun.player_direction, (self.all_sprites, self.bullet_sprites))
+            Bullet(self.bullet_surf, pos, self.gun.player_direction, (self.all_sprites, self.bullet_sprites)) #Crear el objeto bala
             self.can_shoot = False
             self.shoot_time = pygame.time.get_ticks()
 
     def gun_timer(self):
+        #Tiempo para disparar la bala
         if not self.can_shoot:
             current_time = pygame.time.get_ticks()
-            if current_time - self.shoot_time >= self.gun_cooldown:
+            if current_time - self.shoot_time >= self.gun_cooldown: 
                 self.can_shoot = True
 
     def invulnerability_timer(self):
+        #Tiempo de invulnerabilidad
         if self.invulnerable:
             current_time = pygame.time.get_ticks()
             if current_time - self.invulnerability_time >= self.invulnerability_duration:
@@ -121,7 +127,7 @@ class Game:
     def check_player_enemy_collision(self):
         if not self.invulnerable:
             for enemy in self.enemy_sprites:
-                if enemy.alive and enemy.hitbox_rect.colliderect(self.player.hitbox_rect):
+                if enemy.alive and enemy.hitbox_rect.colliderect(self.player.hitbox_rect): #la hitbox del enemigo y la hitbox del jugador se chocan
                     self.player_lives -= 1
                     self.player_impact_sound.play() 
                     self.invulnerable = True
@@ -132,17 +138,17 @@ class Game:
                     break
 
     def draw_lives(self):
-        # PosiciÃ³n inicial para los corazones
+        # Posicion inicial para los corazones
         heart_x = 20
         heart_y = 20
         heart_spacing = 40  # Espacio entre corazones
         
-        # Dibujar los corazones segÃºn las vidas actuales
+        # Dibujar los corazones segunn las vidas actuales
         for i in range(INITIAL_LIVES):
             if i < self.player_lives:
-                self.display_surface.blit(self.full_heart, (heart_x + i * heart_spacing, heart_y))
+                self.display_surface.blit(self.full_heart, (heart_x + i * heart_spacing, heart_y)) #se carga el corazon lleno
             else:
-                self.display_surface.blit(self.empty_heart, (heart_x + i * heart_spacing, heart_y))
+                self.display_surface.blit(self.empty_heart, (heart_x + i * heart_spacing, heart_y)) #se carga el corazon vacio
 
     def draw_enemy_counter(self):
         # Posición del icono de calavera (debajo de las vidas)
@@ -156,7 +162,7 @@ class Game:
         font = pygame.font.Font(join("fonts", "m6x11plus.ttf"), 40)
         text_surface = font.render(str(self.enemy_counter), True, (255, 255, 255))
 
-        # Mostrar número al costado derecho del icono
+        # Mostrar número al costado derecho del icono esto qué chucha ??
         text_rect = text_surface.get_rect(midleft=(skull_x + self.skull.get_width() + 10, skull_y + self.skull.get_height()//2))
         self.display_surface.blit(text_surface, text_rect)
 
@@ -177,18 +183,23 @@ class Game:
             if obj.name == 'Player':
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
                 self.gun = Gun(self.player, self.all_sprites)
+
+            #elif obj.name == "Item":
+            # CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
+            
             else:
                 self.spawn_positions.append((obj.x, obj.y))
 
+    #pantalla de game over
     def game_over_screen(self):
-        self.background_sound.stop()
         self.game_over = True
+        self.enemy_counter = INITIAL_ENEMIES
         while self.game_over:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game_over = False
                     self.running = False
-                # <- añadir solo estas líneas
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         self.restart_game()
@@ -202,7 +213,7 @@ class Game:
             text_rect = text_surface.get_rect(center=(ANCHO_VENTANA//2, ALTO_VENTANA//2))
             self.display_surface.blit(text_surface, text_rect)
 
-            # <- añadir solo estas líneas
+            # fuente y texto
             restart_font = pygame.font.Font(join("fonts", "m6x11plus.ttf"), 40)
             restart_surface = restart_font.render("Presiona R para reiniciar", True, (255, 255, 255))
             restart_rect = restart_surface.get_rect(center=(ANCHO_VENTANA//2, ALTO_VENTANA//2 + 100))
@@ -210,7 +221,8 @@ class Game:
 
             pygame.display.update()
             self.clock.tick(60)
-        
+
+    #pantalla de inicio
     def game_start_screen(self):
         while not self.game_started and self.running:
             for event in pygame.event.get():
@@ -220,7 +232,6 @@ class Game:
                     if event.key == pygame.K_RETURN:
                         self.game_started = True
                         pygame.time.set_timer(self.enemy_event, 1000)
-                        self.background_sound.play(-1)
 
             # dibujar fondo
             self.display_surface.blit(self.game_start_bg, (0, 0))
@@ -256,7 +267,7 @@ class Game:
         pygame.time.set_timer(self.enemy_event, 1000)
 
     def run(self):
-        # <- añadir solo esta línea al inicio
+        # pantalla de inicio
         self.game_start_screen()
         
         while self.running:
@@ -289,7 +300,7 @@ class Game:
             # colisiones
             self.check_player_enemy_collision()
 
-            # Detectar colisiÃ³n bala-enemigo
+            # Detectar colision bala enemigo
             for enemy in self.enemy_sprites:
                 if enemy.alive:
                     for bullet in pygame.sprite.spritecollide(enemy, self.bullet_sprites, dokill=True):

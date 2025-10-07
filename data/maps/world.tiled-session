@@ -13,24 +13,37 @@
             "scaleInDock": 0.75,
             "scaleInEditor": 1
         },
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/vallas.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "world.tmx": {
             "scale": 0.25,
-            "selectedLayer": 3,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 774,
-                "y": 1028
+                "x": 4070,
+                "y": 700
             }
         }
     },
+    "last.imagePath": "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor elementos/Sprout Lands - Sprites - Basic pack/Tilesets",
     "openFiles": [
         "world.tmx",
         "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Grass.tsx",
-        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Objetos.tsx"
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Objetos.tsx",
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/vallas.tsx"
     ],
     "project": "",
     "recentFiles": [
+        "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/vallas.tsx",
         "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Objetos.tsx",
         "C:/Users/look4/OneDrive/Documentos/UTN/Paradigmas/bunnysurvivor/data/tilesets/Grass.tsx",
         "world.tmx"
-    ]
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
 }
